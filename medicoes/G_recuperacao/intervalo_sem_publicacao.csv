@@ -1,0 +1,10 @@
+run_id,maior_intervalo_sem_publicacao_s
+G_driver_restart_on_failure_r1,33.17
+G_driver_restart_on_failure_r2,34.4
+G_driver_restart_on_failure_r3,34.29
+G_driver_sem_reinicio_automatico_r1,35.86
+G_driver_sem_reinicio_automatico_r2,35.16
+G_driver_sem_reinicio_automatico_r3,34.1
+G_worker_r1,21.2
+G_worker_r2,21.46
+G_worker_r3,20.9

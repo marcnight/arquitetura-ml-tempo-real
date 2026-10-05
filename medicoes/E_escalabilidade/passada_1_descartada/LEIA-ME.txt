@@ -1,0 +1,1 @@
+Primeira passada do item E, descartada: sem spark.cores.max/minRegisteredResourcesRatio o unico micro-lote era agendado antes de todos os executores registrarem, de modo que o numero de workers efetivamente usados variava entre execucoes. Alem disso o conteiner do Kafka caiu durante a fase de 3 workers (12:21) e a maquina suspendeu as 12:36 no meio de E_w3_p3_r2.

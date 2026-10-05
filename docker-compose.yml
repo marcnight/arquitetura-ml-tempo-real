@@ -1,0 +1,229 @@
+# Nome fixo do projeto: os scripts de medição procuram contêineres "tcc-*",
+# independentemente do nome da pasta em que o repositório foi clonado.
+name: tcc
+
+x-spark-common: &spark-common
+  image: tcc-spark:4.1.2
+  build:
+    context: ./docker/spark
+    args:
+      UID: "${HOST_UID:-1000}"
+      GID: "${HOST_GID:-1000}"
+
+services:
+  kafka:
+    image: confluentinc/cp-kafka:8.2.1
+    ports:
+      - "9092:9092"
+    environment:
+      # Modo KRaft (sem ZooKeeper): as imagens cp-kafka 8.x não aceitam mais ZooKeeper.
+      CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      # INTERNAL: contêineres do compose (kafka:29092); EXTERNAL: host (localhost:9092).
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_NUM_PARTITIONS: "${TOPIC_PARTITIONS:-3}"
+      KAFKA_HEAP_OPTS: "-Xms512m -Xmx512m"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/29092"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+      start_interval: 3s
+
+  kafka-init:
+    image: confluentinc/cp-kafka:8.2.1
+    depends_on:
+      kafka:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        for t in transactions predictions; do
+          kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists \
+            --topic $$t --partitions ${TOPIC_PARTITIONS:-3} --replication-factor 1
+        done
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    depends_on:
+      kafka:
+        condition: service_healthy
+    restart: on-failure
+    ports:
+      - "9308:9308"
+    command: ["--kafka.server=kafka:29092"]
+
+  spark-master:
+    <<: *spark-common
+    hostname: spark-master
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+    environment:
+      SPARK_DAEMON_MEMORY: 256m
+    command: ["spark-class", "org.apache.spark.deploy.master.Master",
+              "--host", "spark-master", "--port", "7077", "--webui-port", "8080"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8080', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+      start_interval: 2s
+
+  spark-worker:
+    <<: *spark-common
+    depends_on:
+      spark-master:
+        condition: service_healthy
+    environment:
+      SPARK_DAEMON_MEMORY: 256m
+    # Cada worker oferece 2 núcleos; o limite de CPU do contêiner faz com que o
+    # RandomForest (n_jobs=-1) não use mais núcleos do que o worker declara.
+    cpus: 2
+    command: ["spark-class", "org.apache.spark.deploy.worker.Worker", "spark://spark-master:7077",
+              "--cores", "2", "--memory", "${SPARK_WORKER_MEMORY:-1g}",
+              "--webui-port", "8081", "--work-dir", "/tmp/spark-work"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8081', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+      start_interval: 2s
+
+  spark-streaming:
+    <<: *spark-common
+    hostname: spark-streaming
+    # Sem isto o driver não volta sozinho: no Spark 4.1.2 a primeira retomada a partir do
+    # checkpoint encerra a consulta com NullPointerException em KafkaMicroBatchStream.metrics.
+    restart: on-failure
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+      spark-master:
+        condition: service_healthy
+      spark-worker:
+        condition: service_healthy
+    ports:
+      - "4040:4040"
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPARK_MASTER_URL: spark://spark-master:7077
+      SPARK_DRIVER_HOST: spark-streaming
+      SPARK_DRIVER_MEMORY: 768m
+      SPARK_EXECUTOR_MEMORY: "${SPARK_EXECUTOR_MEMORY:-768m}"
+      SPARK_CORES_MAX: "${SPARK_CORES_MAX:-}"
+      CHECKPOINT_DIR: /app/checkpoint/predictions_sink
+      STARTING_OFFSETS: "${STARTING_OFFSETS:-latest}"
+      # O sink de console reexecuta a inferência em uma segunda consulta; fica
+      # desligado no compose (ligue com ENABLE_CONSOLE_SINK=1 para depuração).
+      ENABLE_CONSOLE_SINK: "${ENABLE_CONSOLE_SINK:-0}"
+      PROGRESS_LOG: /app/medicoes/raw/spark_progress.jsonl
+    volumes:
+      - ./src:/app/src:ro
+      - ./models:/app/models:ro
+      - ./medicoes/raw:/app/medicoes/raw
+      - spark_checkpoint:/app/checkpoint
+    command: ["python", "src/spark_streaming.py"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:4040/api/v1/applications', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 120s
+      start_interval: 2s
+
+  metrics-bridge:
+    <<: *spark-common
+    hostname: metrics-bridge
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+    ports:
+      - "8000:8000"
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      LATENCY_CSV: /app/medicoes/raw/latencias_bridge.csv
+    volumes:
+      - ./src:/app/src:ro
+      - ./medicoes/raw:/app/medicoes/raw
+    command: ["python", "src/kafka_metrics_bridge.py"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8000/metrics', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+      start_interval: 2s
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - kafka-exporter
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:9090/-/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+      start_interval: 2s
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_INSTALL_PLUGINS: ""
+    depends_on:
+      - prometheus
+    volumes:
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+      start_interval: 2s
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v3.13.0
+    ports:
+      - "5000:5000"
+    command: ["mlflow", "server", "--host", "0.0.0.0", "--port", "5000",
+              "--backend-store-uri", "sqlite:////mlflow/mlflow.db",
+              "--artifacts-destination", "/mlflow/artifacts", "--serve-artifacts",
+              "--workers", "1"]
+    volumes:
+      - mlflow_data:/mlflow
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:5000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+      start_interval: 2s
+
+volumes:
+  mlflow_data:
+  spark_checkpoint:

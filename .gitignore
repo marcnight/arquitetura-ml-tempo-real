@@ -1,0 +1,54 @@
+# --- Documentos do TCC (texto, modelos da instituição, pacotes de entrega) ---
+/Docs/
+/docs/
+/documentos finais/
+/Resultado/
+/entrega_tcc/
+/entrega_extra/
+/documentacao_tecnica.md
+/resumo_resultados.md
+*.docx
+*.doc
+*.pdf
+
+# --- Base de dados (baixar do Kaggle; ver README) ---
+/base_fraudes/*
+!/base_fraudes/.gitkeep
+
+# --- Modelos treinados (gerados por src/train_model.py) ---
+/models/*
+!/models/.gitkeep
+*.pkl
+
+# --- MLflow local e cópias de segurança ---
+mlflow.db
+mlruns/
+mlartifacts/
+backup_*.tar.gz
+
+# --- Medições: dados brutos e registros de execução (grandes e com caminhos da máquina) ---
+/medicoes/raw/*
+!/medicoes/raw/.gitkeep
+/medicoes/logs/
+/medicoes/**/brutos/
+/medicoes/**/falhas.csv
+/medicoes/A_ambiente/uname.txt
+
+# --- Ambiente local ---
+.env
+venv/
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+checkpoint/
+checkpoint_output/
+feature_importance.png
+
+# --- Editor / sistema / ferramentas ---
+.vscode/
+.idea/
+.claude/
+.DS_Store
+*.swp
+/medicoes/correcoes.diff

@@ -1,0 +1,13 @@
+# Dependências do host (treinamento, produtores de carga e scripts de medição).
+# As versões são as mesmas da imagem Spark (docker/spark/requirements-spark.txt):
+# o modelo é serializado no host e carregado nos contêineres, então scikit-learn,
+# imbalanced-learn, numpy e joblib precisam coincidir dos dois lados.
+pandas==2.3.3
+numpy==2.4.6
+scikit-learn==1.9.0
+imbalanced-learn==0.14.2
+joblib==1.5.3
+mlflow==3.13.0
+matplotlib==3.11.0
+kafka-python==3.0.0
+prometheus_client==0.25.0

@@ -1,0 +1,4 @@
+cenario,repeticao,run_id,taxa_nominal,enviadas,erros_envio,predicoes_recebidas,tx_unicas,perdidas,duplicadas_mensagens_extras,tx_com_duplicata,dreno_completo,tempo_dreno_s,indisponibilidade_s,ultima_publicacao_antes_s,lat_max_s,t_kill,t_inicio,t_fim
+driver_sem_reinicio_automatico,1,G_driver_sem_reinicio_automatico_r1,500,45000,0,12666,12417,32583,249,249,0,420.4,0.05,0.05,37.11,1791067387.2862651,1791067362.0203722,1791067452.02511
+driver_sem_reinicio_automatico,2,G_driver_sem_reinicio_automatico_r2,500,45000,0,12639,12639,32361,0,0,0,421.0,35.14,0.01,36.44,1791067997.1919012,1791067971.9847505,1791068061.9892876
+driver_sem_reinicio_automatico,3,G_driver_sem_reinicio_automatico_r3,500,45000,0,12526,12296,32704,230,230,0,421.0,0.09,0.28,35.24,1791068608.373696,1791068583.5707486,1791068673.573142

@@ -1,0 +1,2 @@
+transacoes,enviadas,recebidas_do_spark,duplicadas,dreno_completo,divergencia_maxima_prob,divergencia_media_prob,tx_com_prob_diferente,rotulos_diferentes,fraudes_preditas_pandas,fraudes_preditas_spark
+10000,10000,10000,0,1,3.3306690738754696e-16,1.5480267926088007e-17,3307,0,37,37

@@ -1,0 +1,34 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  # Ponte de métricas (serviço de inferência): roda dentro do compose.
+  - job_name: "fraud_detection_pipeline"
+    static_configs:
+      - targets: ["metrics-bridge:8000"]
+        labels:
+          service: "ml_inference"
+
+  - job_name: "kafka"
+    static_configs:
+      - targets: ["kafka-exporter:9308"]
+
+  - job_name: "spark"
+    metrics_path: /metrics/master/prometheus
+    static_configs:
+      - targets: ["spark-master:8080"]
+
+  - job_name: "spark_driver"
+    metrics_path: /metrics/prometheus
+    static_configs:
+      - targets: ["spark-streaming:4040"]
+
+  # Descobre todos os workers (inclusive após --scale spark-worker=N).
+  - job_name: "spark_worker"
+    metrics_path: /metrics/prometheus
+    dns_sd_configs:
+      - names: ["spark-worker"]
+        type: A
+        port: 8081
+        refresh_interval: 5s

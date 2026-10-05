@@ -1,0 +1,11 @@
+# Mesmas versões do venv do host (pip freeze), para que o caminho Spark use
+# exatamente as bibliotecas com que o modelo foi treinado e serializado.
+pyspark==4.1.2
+pandas==2.3.3
+numpy==2.4.6
+pyarrow==24.0.0
+scikit-learn==1.9.0
+imbalanced-learn==0.14.2
+joblib==1.5.3
+kafka-python==3.0.0
+prometheus_client==0.25.0

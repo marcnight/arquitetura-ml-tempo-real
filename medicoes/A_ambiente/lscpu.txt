@@ -1,0 +1,47 @@
+Arquitetura:                               x86_64
+Modo(s) operacional da CPU:                32-bit, 64-bit
+Tamanhos de endereço:                      48 bits physical, 48 bits virtual
+Ordem dos bytes:                           Little Endian
+CPU(s):                                    8
+Lista de CPU(s) on-line:                   0-7
+ID de fornecedor:                          AuthenticAMD
+Nome do modelo:                            AMD Ryzen 3 5300U with Radeon Graphics
+Família da CPU:                            23
+Modelo:                                    104
+Thread(s) per núcleo:                      2
+Núcleo(s) por soquete:                     4
+Soquete(s):                                1
+Step:                                      1
+Versão do micro-código:                    0x8608108
+Aumento de frequência:                     habilitado
+CPU(s) MHz de escala:                      49%
+CPU MHz máx.:                              2600,0000
+CPU MHz mín.:                              412,9420
+BogoMIPS:                                  5190,36
+Opções:                                    fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif v_spec_ctrl umip rdpid overflow_recov succor smca
+Virtualização:                             AMD-V
+cache de L1d:                              128 KiB (4 instâncias)
+cache de L1i:                              128 KiB (4 instâncias)
+cache de L2:                               2 MiB (4 instâncias)
+cache de L3:                               4 MiB (1 instância)
+Nó(s) de NUMA:                             1
+CPU(s) de nó0 NUMA:                        0-7
+Vulnerabilidade Gather data sampling:      Not affected
+Vulnerabilidade Ghostwrite:                Not affected
+Vulnerabilidade Indirect target selection: Not affected
+Vulnerabilidade Itlb multihit:             Not affected
+Vulnerabilidade L1tf:                      Not affected
+Vulnerabilidade Mds:                       Not affected
+Vulnerabilidade Meltdown:                  Not affected
+Vulnerabilidade Mmio stale data:           Not affected
+Vulnerabilidade Old microcode:             Not affected
+Vulnerabilidade Reg file data sampling:    Not affected
+Vulnerabilidade Retbleed:                  Mitigation; untrained return thunk; SMT enabled with STIBP protection
+Vulnerabilidade Spec rstack overflow:      Mitigation; Safe RET
+Vulnerabilidade Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl
+Vulnerabilidade Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerabilidade Spectre v2:                Mitigation; Retpolines; IBPB conditional; STIBP always-on; RSB filling; PBRSB-eIBRS Not affected; BHI Not affected
+Vulnerabilidade Srbds:                     Not affected
+Vulnerabilidade Tsa:                       Not affected
+Vulnerabilidade Tsx async abort:           Not affected
+Vulnerabilidade Vmscape:                   Mitigation; IBPB before exit to userspace
