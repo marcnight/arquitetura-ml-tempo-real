@@ -119,7 +119,7 @@ Todos os comandos são executados a partir da raiz do repositório.
 ### 1. Clonar o repositório
 
 ```bash
-git clone <URL-do-repositório> arquitetura-ml-tempo-real
+git clone https://github.com/marcnight/arquitetura-ml-tempo-real.git
 cd arquitetura-ml-tempo-real
 ```
 
